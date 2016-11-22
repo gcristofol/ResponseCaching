@@ -30,7 +30,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
             // Verify request cache-control parameters
             if (!StringValues.IsNullOrEmpty(request.Headers[HeaderNames.CacheControl]))
             {
-                if (HttpHeaderHelpers.Contains(request.Headers[HeaderNames.CacheControl], CacheControlValues.NoCacheString))
+                if (HeaderUtilities.Contains(request.Headers[HeaderNames.CacheControl], CacheControlHeaderValue.NoCacheString))
                 {
                     context.Logger.LogRequestWithNoCacheNotCacheable();
                     return false;
@@ -40,7 +40,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
             {
                 // Support for legacy HTTP 1.0 cache directive
                 var pragmaHeaderValues = request.Headers[HeaderNames.Pragma];
-                if (HttpHeaderHelpers.Contains(request.Headers[HeaderNames.Pragma], CacheControlValues.NoCacheString))
+                if (HeaderUtilities.Contains(request.Headers[HeaderNames.Pragma], CacheControlHeaderValue.NoCacheString))
                 {
                     context.Logger.LogRequestWithPragmaNoCacheNotCacheable();
                     return false;
@@ -55,22 +55,22 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
             var responseCacheControlHeader = context.HttpContext.Response.Headers[HeaderNames.CacheControl];
 
             // Only cache pages explicitly marked with public
-            if (!HttpHeaderHelpers.Contains(responseCacheControlHeader, CacheControlValues.PublicString))
+            if (!HeaderUtilities.Contains(responseCacheControlHeader, CacheControlHeaderValue.PublicString))
             {
                 context.Logger.LogResponseWithoutPublicNotCacheable();
                 return false;
             }
 
             // Check no-store
-            if (HttpHeaderHelpers.Contains(context.HttpContext.Request.Headers[HeaderNames.CacheControl], CacheControlValues.NoStoreString)
-                || HttpHeaderHelpers.Contains(responseCacheControlHeader, CacheControlValues.NoStoreString))
+            if (HeaderUtilities.Contains(context.HttpContext.Request.Headers[HeaderNames.CacheControl], CacheControlHeaderValue.NoStoreString)
+                || HeaderUtilities.Contains(responseCacheControlHeader, CacheControlHeaderValue.NoStoreString))
             {
                 context.Logger.LogResponseWithNoStoreNotCacheable();
                 return false;
             }
 
             // Check no-cache
-            if (HttpHeaderHelpers.Contains(responseCacheControlHeader, CacheControlValues.NoCacheString))
+            if (HeaderUtilities.Contains(responseCacheControlHeader, CacheControlHeaderValue.NoCacheString))
             {
                 context.Logger.LogResponseWithNoCacheNotCacheable();
                 return false;
@@ -94,7 +94,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
             }
 
             // Check private
-            if (HttpHeaderHelpers.Contains(responseCacheControlHeader, CacheControlValues.PrivateString))
+            if (HeaderUtilities.Contains(responseCacheControlHeader, CacheControlHeaderValue.PrivateString))
             {
                 context.Logger.LogResponseWithPrivateNotCacheable();
                 return false;
@@ -159,7 +159,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
 
             // Add min-fresh requirements
             TimeSpan? minFresh;
-            if (HttpHeaderHelpers.TryParseTimeSpan(requestCacheControlHeaders, CacheControlValues.MinFreshString, out minFresh))
+            if (HeaderUtilities.TryParseTimeSpan(requestCacheControlHeaders, CacheControlHeaderValue.MinFreshString, out minFresh))
             {
                 age += minFresh.Value;
                 context.Logger.LogExpirationMinFreshAdded(minFresh.Value);
@@ -167,7 +167,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
 
             // Validate shared max age, this overrides any max age settings for shared caches
             TimeSpan? cachedSharedMaxAge;
-            HttpHeaderHelpers.TryParseTimeSpan(cachedCacheControlHeaders, CacheControlValues.SharedMaxAgeString, out cachedSharedMaxAge);
+            HeaderUtilities.TryParseTimeSpan(cachedCacheControlHeaders, CacheControlHeaderValue.SharedMaxAgeString, out cachedSharedMaxAge);
 
             if (age >= cachedSharedMaxAge)
             {
@@ -178,24 +178,24 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
             else if (!cachedSharedMaxAge.HasValue)
             {
                 TimeSpan? requestMaxAge;
-                HttpHeaderHelpers.TryParseTimeSpan(requestCacheControlHeaders, CacheControlValues.MaxAgeString, out requestMaxAge);
+                HeaderUtilities.TryParseTimeSpan(requestCacheControlHeaders, CacheControlHeaderValue.MaxAgeString, out requestMaxAge);
 
                 TimeSpan? cachedMaxAge;
-                HttpHeaderHelpers.TryParseTimeSpan(cachedCacheControlHeaders, CacheControlValues.MaxAgeString, out cachedMaxAge);
+                HeaderUtilities.TryParseTimeSpan(cachedCacheControlHeaders, CacheControlHeaderValue.MaxAgeString, out cachedMaxAge);
 
                 var lowestMaxAge = cachedMaxAge < requestMaxAge ? cachedMaxAge : requestMaxAge ?? cachedMaxAge;
                 // Validate max age
                 if (age >= lowestMaxAge)
                 {
                     // Must revalidate
-                    if (HttpHeaderHelpers.Contains(cachedCacheControlHeaders, CacheControlValues.MustRevalidateString))
+                    if (HeaderUtilities.Contains(cachedCacheControlHeaders, CacheControlHeaderValue.MustRevalidateString))
                     {
                         context.Logger.LogExpirationMustRevalidate(age, lowestMaxAge.Value);
                         return false;
                     }
 
                     TimeSpan? requestMaxStale;
-                    HttpHeaderHelpers.TryParseTimeSpan(requestCacheControlHeaders, CacheControlValues.MaxStaleString, out requestMaxStale);
+                    HeaderUtilities.TryParseTimeSpan(requestCacheControlHeaders, CacheControlHeaderValue.MaxStaleString, out requestMaxStale);
 
                     // Request allows stale values
                     if (requestMaxStale.HasValue && age - lowestMaxAge < requestMaxStale)
@@ -211,7 +211,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
                 {
                     // Validate expiration
                     DateTimeOffset expires;
-                    if (HttpHeaderHelpers.TryParseDate(context.CachedResponseHeaders[HeaderNames.Expires], out expires) &&
+                    if (HeaderUtilities.TryParseDate(context.CachedResponseHeaders[HeaderNames.Expires], out expires) &&
                         context.ResponseTime.Value >= expires)
                     {
                         context.Logger.LogExpirationExpiresExceeded(context.ResponseTime.Value, expires);

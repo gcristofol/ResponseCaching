@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.ResponseCaching
                 }
             }
 
-            if (HttpHeaderHelpers.Contains(context.HttpContext.Request.Headers[HeaderNames.CacheControl], CacheControlValues.OnlyIfCachedString))
+            if (HeaderUtilities.Contains(context.HttpContext.Request.Headers[HeaderNames.CacheControl], CacheControlHeaderValue.OnlyIfCachedString))
             {
                 _logger.LogGatewayTimeoutServed();
                 context.HttpContext.Response.StatusCode = StatusCodes.Status504GatewayTimeout;
@@ -387,16 +387,14 @@ namespace Microsoft.AspNetCore.ResponseCaching
                 if (!StringValues.IsNullOrEmpty(ifUnmodifiedSince))
                 {
                     DateTimeOffset modified;
-                    if (!HttpHeaderHelpers.TryParseDate(cachedResponseHeaders[HeaderNames.LastModified], out modified))
+                    if (!HeaderUtilities.TryParseDate(cachedResponseHeaders[HeaderNames.LastModified], out modified) &&
+                        !HeaderUtilities.TryParseDate(cachedResponseHeaders[HeaderNames.Date], out modified))
                     {
-                        if (!HttpHeaderHelpers.TryParseDate(cachedResponseHeaders[HeaderNames.Date], out modified))
-                        {
-                            return false;
-                        }
+                        return false;
                     }
 
                     DateTimeOffset unmodifiedSince;
-                    if (HttpHeaderHelpers.TryParseDate(ifUnmodifiedSince, out unmodifiedSince) &&
+                    if (HeaderUtilities.TryParseDate(ifUnmodifiedSince, out unmodifiedSince) &&
                         modified <= unmodifiedSince)
                     {
                         context.Logger.LogNotModifiedIfUnmodifiedSinceSatisfied(modified, unmodifiedSince);
