@@ -7,7 +7,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.AspNetCore.ResponseCaching.Internal
 {
-    internal static class HttpHeaderParsingHelpers
+    internal static class HttpHeaderHelpers
     {
         private static readonly string[] DateFormats = new string[] {
             // "r", // RFC 1123, required output format but too strict for input
@@ -32,21 +32,21 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
 
         // Try the various date formats in the order listed above.
         // We should accept a wide verity of common formats, but only output RFC 1123 style dates.
-        internal static bool TryParseHeaderDate(string input, out DateTimeOffset result) => DateTimeOffset.TryParseExact(input, DateFormats, DateTimeFormatInfo.InvariantInfo,
+        internal static bool TryParseDate(string input, out DateTimeOffset result) => DateTimeOffset.TryParseExact(input, DateFormats, DateTimeFormatInfo.InvariantInfo,
                 DateTimeStyles.AllowWhiteSpaces | DateTimeStyles.AssumeUniversal, out result);
 
         // Try to get the value of a specific header from a list of headers
         // e.g. "header1=10, header2=30"
-        internal static bool TryParseHeaderTimeSpan(StringValues headers, string headerName, out TimeSpan? value)
+        internal static bool TryParseTimeSpan(StringValues headerValues, string targetValue, out TimeSpan? value)
         {
-            foreach (var header in headers)
+            foreach (var headerValue in headerValues)
             {
-                var index = header.IndexOf(headerName, StringComparison.OrdinalIgnoreCase);
+                var index = headerValue.IndexOf(targetValue, StringComparison.OrdinalIgnoreCase);
                 if (index != -1)
                 {
-                    index += headerName.Length;
+                    index += targetValue.Length;
                     int seconds;
-                    if (!TryParseHeaderInt(index, header, out seconds))
+                    if (!TryParseInt(index, headerValue, out seconds))
                     {
                         break;
                     }
@@ -58,11 +58,11 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
             return false;
         }
 
-        internal static bool HeaderContains(StringValues headers, string headerName)
+        internal static bool Contains(StringValues headerValues, string targetValue)
         {
-            foreach (var header in headers)
+            foreach (var headerValue in headerValues)
             {
-                var index = header.IndexOf(headerName, StringComparison.OrdinalIgnoreCase);
+                var index = headerValue.IndexOf(targetValue, StringComparison.OrdinalIgnoreCase);
                 if (index != -1)
                 {
                     return true;
@@ -72,29 +72,28 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
             return false;
         }
 
-        private static bool TryParseHeaderInt(int startIndex, string header, out int value)
+        private static bool TryParseInt(int startIndex, string headerValue, out int value)
         {
             var found = false;
-            while (startIndex != header.Length)
+            while (startIndex != headerValue.Length)
             {
-                var c = header[startIndex];
+                var c = headerValue[startIndex];
                 if (c == '=')
                 {
                     found = true;
                 }
                 else if (c != ' ')
                 {
-                    --startIndex;
                     break;
                 }
                 ++startIndex;
             }
-            if (found && startIndex != header.Length)
+            if (found)
             {
-                var endIndex = startIndex + 1;
-                while (endIndex < header.Length)
+                var endIndex = startIndex;
+                while (endIndex < headerValue.Length)
                 {
-                    var c = header[endIndex];
+                    var c = headerValue[endIndex];
                     if ((c >= '0') && (c <= '9'))
                     {
                         endIndex++;
@@ -104,10 +103,10 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
                         break;
                     }
                 }
-                var length = endIndex - (startIndex + 1);
+                var length = endIndex - startIndex;
                 if (length > 0)
                 {
-                    value = int.Parse(header.Substring(startIndex + 1, length), NumberStyles.None, NumberFormatInfo.InvariantInfo);
+                    value = int.Parse(headerValue.Substring(startIndex, length), NumberStyles.None, NumberFormatInfo.InvariantInfo);
                     return true;
                 }
             }

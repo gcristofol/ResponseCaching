@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.ResponseCaching.Tests
 {
-    public class ParsingHelpersTests
+    public class HttpHeaderHelpersTests
     {
         [Theory]
         [InlineData("h=1", "h", 1)]
@@ -16,10 +16,10 @@ namespace Microsoft.AspNetCore.ResponseCaching.Tests
         [InlineData("header1   =45, header2=80", "header1", 45)]
         [InlineData("header1=   89   , header2=22", "header1", 89)]
         [InlineData("header1=   89   , header2= 42", "header2", 42)]
-        void TryGetHeaderValue_Succeeds(string headerValue, string headerName, int expectedValue)
+        void TryParseTimeSpan_Succeeds(string headerValues, string targetValue, int expectedValue)
         {
             TimeSpan? value;
-            Assert.True(HttpHeaderParsingHelpers.TryParseHeaderTimeSpan(new StringValues(headerValue), headerName, out value));
+            Assert.True(HttpHeaderHelpers.TryParseTimeSpan(new StringValues(headerValues), targetValue, out value));
             Assert.Equal(TimeSpan.FromSeconds(expectedValue), value);
         }
 
@@ -30,10 +30,10 @@ namespace Microsoft.AspNetCore.ResponseCaching.Tests
         [InlineData("h=10", "header")]
         [InlineData("", "")]
         [InlineData(null, null)]
-        void TryGetHeaderValue_Fails(string headerValue, string headerName)
+        void TryParseTimeSpan_Fails(string headerValues, string targetValue)
         {
             TimeSpan? value;
-            Assert.False(HttpHeaderParsingHelpers.TryParseHeaderTimeSpan(new StringValues(headerValue), headerName, out value));
+            Assert.False(HttpHeaderHelpers.TryParseTimeSpan(new StringValues(headerValues), targetValue, out value));
         }
     }
 }
