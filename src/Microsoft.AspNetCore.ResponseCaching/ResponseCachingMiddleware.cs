@@ -198,7 +198,7 @@ namespace Microsoft.AspNetCore.ResponseCaching
                 }
             }
 
-            if (HeaderUtilities.Contains(context.HttpContext.Request.Headers[HeaderNames.CacheControl], CacheControlHeaderValue.OnlyIfCachedString))
+            if (HeaderUtilities.Contains(context.HttpContext.Request.Headers[HeaderNames.CacheControl], CacheControlValues.OnlyIfCachedString))
             {
                 _logger.LogGatewayTimeoutServed();
                 context.HttpContext.Response.StatusCode = StatusCodes.Status504GatewayTimeout;

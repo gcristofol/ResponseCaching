@@ -112,7 +112,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
                 if (!_parsedResponseSharedMaxAge)
                 {
                     _parsedResponseSharedMaxAge = true;
-                    HeaderUtilities.TryParseTimeSpan(HttpContext.Response.Headers[HeaderNames.CacheControl], CacheControlHeaderValue.SharedMaxAgeString, out _responseSharedMaxAge);
+                    HeaderUtilities.TryParseTimeSpan(HttpContext.Response.Headers[HeaderNames.CacheControl], CacheControlValues.SharedMaxAgeString, out _responseSharedMaxAge);
                 }
                 return _responseSharedMaxAge;
             }
@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
                 if (!_parsedResponseMaxAge)
                 {
                     _parsedResponseMaxAge = true;
-                    HeaderUtilities.TryParseTimeSpan(HttpContext.Response.Headers[HeaderNames.CacheControl], CacheControlHeaderValue.MaxAgeString, out _responseMaxAge);
+                    HeaderUtilities.TryParseTimeSpan(HttpContext.Response.Headers[HeaderNames.CacheControl], CacheControlValues.MaxAgeString, out _responseMaxAge);
                 }
                 return _responseMaxAge;
             }
