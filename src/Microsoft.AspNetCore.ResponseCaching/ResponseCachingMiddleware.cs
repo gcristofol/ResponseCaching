@@ -142,7 +142,7 @@ namespace Microsoft.AspNetCore.ResponseCaching
                         response.Headers.Add(header);
                     }
 
-                    response.Headers[HeaderNames.Age] = ((long)context.CachedEntryAge.Value.TotalSeconds).ToString("F", CultureInfo.InvariantCulture);
+                    response.Headers[HeaderNames.Age] = (context.CachedEntryAge.Value.Ticks / TimeSpan.TicksPerSecond).ToString("F", CultureInfo.InvariantCulture);
 
                     // Copy the cached response body
                     var body = context.CachedResponse.Body;
