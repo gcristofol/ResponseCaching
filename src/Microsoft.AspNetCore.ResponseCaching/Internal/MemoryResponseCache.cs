@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Net.Http.Headers;
 
 namespace Microsoft.AspNetCore.ResponseCaching.Internal
 {
@@ -33,7 +34,8 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
                     Created = memoryCachedResponse.Created,
                     StatusCode = memoryCachedResponse.StatusCode,
                     Headers = memoryCachedResponse.Headers,
-                    Body = new SegmentReadStream(memoryCachedResponse.BodySegments, memoryCachedResponse.BodyLength)
+                    Body = new SegmentReadStream(memoryCachedResponse.BodySegments, memoryCachedResponse.BodyLength),
+                    BodyLengthString = memoryCachedResponse.BodyLengthString
                 });
             }
             else
@@ -58,7 +60,8 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
                         StatusCode = cachedResponse.StatusCode,
                         Headers = cachedResponse.Headers,
                         BodySegments = segmentStream.GetSegments(),
-                        BodyLength = segmentStream.Length
+                        BodyLength = segmentStream.Length,
+                        BodyLengthString = HeaderUtilities.FormatInt64(segmentStream.Length)
                     },
                     new MemoryCacheEntryOptions
                     {

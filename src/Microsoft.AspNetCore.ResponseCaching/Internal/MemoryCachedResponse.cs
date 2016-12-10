@@ -18,5 +18,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Internal
         public List<byte[]> BodySegments { get; set; }
 
         public long BodyLength { get; set; }
+
+        public string BodyLengthString { get; set; }
     }
 }

@@ -151,7 +151,7 @@ namespace Microsoft.AspNetCore.ResponseCaching
                         // Add a content-length if required
                         if (!response.ContentLength.HasValue && StringValues.IsNullOrEmpty(response.Headers[HeaderNames.TransferEncoding]))
                         {
-                            response.ContentLength = body.Length;
+                            response.Headers[HeaderNames.ContentLength] = context.CachedResponse.BodyLengthString;
                         }
 
                         try
