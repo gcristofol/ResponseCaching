@@ -61,6 +61,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Tests
                 "BaseKey",
                 new CachedResponse()
                 {
+                    Headers = new HeaderDictionary(),
                     Body = new SegmentReadStream(new List<byte[]>(0), 0)
                 },
                 TimeSpan.Zero);
@@ -108,6 +109,7 @@ namespace Microsoft.AspNetCore.ResponseCaching.Tests
                 "BaseKeyVaryKey2",
                 new CachedResponse()
                 {
+                    Headers = new HeaderDictionary(),
                     Body = new SegmentReadStream(new List<byte[]>(0), 0)
                 },
                 TimeSpan.Zero);

@@ -263,7 +263,8 @@ namespace Microsoft.AspNetCore.ResponseCaching
                 context.CachedResponse = new CachedResponse
                 {
                     Created = context.ResponseDate.Value,
-                    StatusCode = context.HttpContext.Response.StatusCode
+                    StatusCode = context.HttpContext.Response.StatusCode,
+                    Headers = new HeaderDictionary()
                 };
 
                 foreach (var header in context.HttpContext.Response.Headers)
