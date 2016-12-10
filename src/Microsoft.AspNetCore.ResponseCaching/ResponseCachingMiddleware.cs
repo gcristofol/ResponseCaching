@@ -372,8 +372,9 @@ namespace Microsoft.AspNetCore.ResponseCaching
                     && EntityTagHeaderValue.TryParse(cachedResponseHeaders[HeaderNames.ETag], out eTag)
                     && EntityTagHeaderValue.TryParseList(ifNoneMatchHeader, out ifNoneMatchEtags))
                 {
-                    foreach (var requestETag in ifNoneMatchEtags)
+                    for (var i = 0; i < ifNoneMatchEtags.Count; i++)
                     {
+                        var requestETag = ifNoneMatchEtags[i];
                         if (eTag.Compare(requestETag, useStrongComparison: false))
                         {
                             context.Logger.LogNotModifiedIfNoneMatchMatched(requestETag);
